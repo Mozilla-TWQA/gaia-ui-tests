@@ -145,7 +145,7 @@ class GaiaTestCase(MarionetteTestCase):
         self.restart = kwargs.pop('restart', False)
         MarionetteTestCase.__init__(self, *args, **kwargs)
 
-    def setUp(self):
+    def setUp(self, appname):
         MarionetteTestCase.setUp(self)
 
         self.device = GaiaDevice(self.marionette, self.testvars)
@@ -157,6 +157,15 @@ class GaiaTestCase(MarionetteTestCase):
         self.apps = GaiaApps(self.marionette)
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)
+
+        from gaiatest.apps.homescreen.app import Homescreen
+        self.marionette.switch_to_frame()
+        self.marionette.switch_to_frame(self.marionette.find_element('css selector', 'iframe[src*="homescreen"][src*="/index.html"]'))
+
+        self.homescreen = Homescreen(self.marionette)
+        self.homescreen.launch()
+        self.homescreen.launch_app(appname)
+
 
     def push_resource(self, filename, count=1, destination=''):
         self.device.push_file(self.resource(filename), count, '/'.join(['sdcard', destination]))

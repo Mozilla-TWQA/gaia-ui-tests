@@ -15,7 +15,7 @@ class Homescreen(Base):
     _search_bar_icon_locator = (By.ID, 'evme-activation-icon')
 
     def launch(self):
-        Base.launch(self)
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
 
     def switch_to_homescreen_frame(self):
         self.marionette.switch_to_frame()
@@ -28,19 +28,26 @@ class Homescreen(Base):
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
         return SearchPanel(self.marionette)
 
-    def is_app_installed(self, app_name):
-        """Checks whether app is installed"""
-        is_installed = False
+    def launch_app(self, app_name):
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+        launched = False
         while self.homescreen_has_more_pages:
-            self.go_to_next_page()
             if self.is_element_displayed(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name):
-                is_installed = True
+                self.marionette.find_element(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name).tap()
+                launched = True
                 break
-
-        return is_installed
+            self.go_to_next_page()
+        while self.homescreen_has_previous_pages and not launched:
+            if self.is_element_displayed(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name):
+                self.marionette.find_element(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name).tap()
+                break
+            self.go_to_previous_page()
 
     def go_to_next_page(self):
         self.marionette.execute_script('window.wrappedJSObject.GridManager.goToNextPage()')
+
+    def go_to_previous_page(self):
+        self.marionette.execute_script('window.wrappedJSObject.GridManager.goToPreviousPage()')
 
     @property
     def homescreen_has_more_pages(self):
@@ -48,3 +55,10 @@ class Homescreen(Base):
         return self.marionette.execute_script("""
         var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
         return pageHelper.getCurrentPageNumber() < (pageHelper.getTotalPagesNumber() - 1);""")
+
+    @property
+    def homescreen_has_previous_pages(self):
+        # the naming of this could be more concise when it's in an app object!
+        return self.marionette.execute_script("""
+        var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
+        return pageHelper.getCurrentPageNumber() != 0;""")
