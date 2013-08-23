@@ -12,7 +12,6 @@ class TestCamera(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
     def test_capture_a_photo(self):
-        # https://moztrap.mozilla.org/manage/case/1325/
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.marionette.find_element('css selector', 'iframe[src*="camera"][src*="/index.html"]'))
 

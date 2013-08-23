@@ -133,43 +133,6 @@ class GaiaDevice(object):
 
             self.manager.removeFile(destination)
 
-    def restart_b2g(self):
-        self.stop_b2g()
-        time.sleep(2)
-        self.start_b2g()
-
-    def start_b2g(self):
-        if self.marionette.instance:
-            # launch the gecko instance attached to marionette
-            self.marionette.instance.start()
-        elif self.is_android_build:
-            self.manager.shellCheckOutput(['start', 'b2g'])
-        else:
-            raise Exception('Unable to start B2G')
-        self.marionette.wait_for_port()
-        self.marionette.start_session()
-        if self.is_android_build:
-            self.marionette.execute_async_script("""
-window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
-  if (aEvent.target.src.indexOf('ftu') != -1 || aEvent.target.src.indexOf('homescreen') != -1) {
-    window.removeEventListener('mozbrowserloadend', loaded);
-    marionetteScriptFinished();
-  }
-});""", script_timeout=60000)
-
-    def stop_b2g(self):
-        if self.marionette.instance:
-            # close the gecko instance attached to marionette
-            self.marionette.instance.close()
-        elif self.is_android_build:
-            self.manager.shellCheckOutput(['stop', 'b2g'])
-        else:
-            raise Exception('Unable to stop B2G')
-        self.marionette.client.close()
-        self.marionette.session = None
-        self.marionette.window = None
-
-
 class GaiaTestCase(MarionetteTestCase):
 
     _script_timeout = 60000
@@ -183,20 +146,9 @@ class GaiaTestCase(MarionetteTestCase):
         MarionetteTestCase.__init__(self, *args, **kwargs)
 
     def setUp(self):
-        try:
-            MarionetteTestCase.setUp(self)
-        except InvalidResponseException:
-            if self.restart:
-                pass
+        MarionetteTestCase.setUp(self)
 
         self.device = GaiaDevice(self.marionette, self.testvars)
-        if self.restart and (self.device.is_android_build or self.marionette.instance):
-            self.device.stop_b2g()
-            if self.device.is_android_build:
-                # revert device to a clean state
-                self.device.manager.removeDir('/data/local/indexedDB')
-                self.device.manager.removeDir('/data/b2g/mozilla')
-            self.device.start_b2g()
 
         # the emulator can be really slow!
         self.marionette.set_script_timeout(self._script_timeout)
@@ -205,11 +157,6 @@ class GaiaTestCase(MarionetteTestCase):
         self.apps = GaiaApps(self.marionette)
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)
-
-        self.cleanUp()
-
-    def cleanUp(self):
-        pass
 
     def push_resource(self, filename, count=1, destination=''):
         self.device.push_file(self.resource(filename), count, '/'.join(['sdcard', destination]))
@@ -306,7 +253,10 @@ class GaiaTestCase(MarionetteTestCase):
             return False
 
     def tearDown(self):
+         # switch to homescreem
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+
         self.lockscreen = None
         self.apps = None
-        self.data_layer = None
         MarionetteTestCase.tearDown(self)
