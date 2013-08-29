@@ -8,7 +8,7 @@ from gaiatest.apps.camera.app import Camera
 class TestCamera(GaiaTestCase):
 
     def setUp(self):
-        GaiaTestCase.setUp(self, "Camera")
+        GaiaTestCase.setUp(self)
 
     def test_capture_a_photo(self):
         self.marionette.switch_to_frame()
