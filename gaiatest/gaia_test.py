@@ -134,7 +134,6 @@ class GaiaDevice(object):
             self.manager.removeFile(destination)
 
 class GaiaTestCase(MarionetteTestCase):
-    tests = []
 
     _script_timeout = 60000
     _search_timeout = 10000
@@ -146,7 +145,7 @@ class GaiaTestCase(MarionetteTestCase):
         self.restart = kwargs.pop('restart', False)
         MarionetteTestCase.__init__(self, *args, **kwargs)
 
-    def setUp(self):
+    def setUp(self, appname):
         MarionetteTestCase.setUp(self)
 
         self.device = GaiaDevice(self.marionette, self.testvars)
@@ -159,22 +158,14 @@ class GaiaTestCase(MarionetteTestCase):
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)
 
-    def add_to_list(self, test, app):
-        self.tests.append([test, app])
+        from gaiatest.apps.homescreen.app import Homescreen
+        self.marionette.switch_to_frame()
+        self.marionette.switch_to_frame(self.marionette.find_element('css selector', 'iframe[src*="homescreen"][src*="/index.html"]'))
 
-    def run_tests(self):
-        import pdb; pdb.set_trace()
-        for test in self.tests:
-            self.setUp()
-            from gaiatest.apps.homescreen.app import Homescreen
-            self.marionette.switch_to_frame()
-            self.marionette.switch_to_frame(self.marionette.find_element('css selector', 'iframe[src*="homescreen"][src*="/index.html"]'))
+        self.homescreen = Homescreen(self.marionette)
+        self.homescreen.launch()
+        self.homescreen.launch_app(appname)
 
-            self.homescreen = Homescreen(self.marionette)
-            self.homescreen.launch()
-            self.homescreen.launch_app(test[1])
-            test[0]()
-            self.testDown()
 
     def push_resource(self, filename, count=1, destination=''):
         self.device.push_file(self.resource(filename), count, '/'.join(['sdcard', destination]))
@@ -272,11 +263,9 @@ class GaiaTestCase(MarionetteTestCase):
 
     def tearDown(self):
          # switch to homescreem
-        self.run_tests()
-
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
 
-        # self.lockscreen = None
-        # self.apps = None
-        # MarionetteTestCase.tearDown(self)
+        self.lockscreen = None
+        self.apps = None
+        MarionetteTestCase.tearDown(self)

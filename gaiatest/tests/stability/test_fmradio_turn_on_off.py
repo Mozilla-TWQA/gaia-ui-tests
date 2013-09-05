@@ -9,7 +9,7 @@ from gaiatest.apps.fmradio.app import FmRadio
 class TestFMRadioTurnOnOff(GaiaTestCase):
 
     def setUp(self):
-        GaiaTestCase.setUp(self)
+        GaiaTestCase.setUp(self, "FM Radio")
 
     def test_turn_radio_on_off(self):
         """ Turn off and then Turn on the radio
