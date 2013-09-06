@@ -158,6 +158,16 @@ class GaiaTestCase(MarionetteTestCase):
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)
 
+        # Detect if there is ftu and do skip tour
+        try:
+            ftu_frame = ('css selector', 'iframe[src*="ftu"][src*="/index.html"]')
+            if self.marionette.find_element(*ftu_frame).is_displayed():
+                from gaiatest.apps.ftu.app import Ftu
+                self.ftu = Ftu(self.marionette)
+                self.ftu.skip_tour()
+        except:
+            pass
+
         from gaiatest.apps.homescreen.app import Homescreen
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.marionette.find_element('css selector', 'iframe[src*="homescreen"][src*="/index.html"]'))

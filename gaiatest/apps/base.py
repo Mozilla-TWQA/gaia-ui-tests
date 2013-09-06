@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import time
+import unittest
 
 from marionette.by import By
 from marionette.errors import NoSuchElementException

@@ -6,10 +6,10 @@ import re
 
 from marionette.by import By
 
-from gaiatest import GaiaTestCase
+from gaiatest.apps.base import Base
+from gaiatest.apps.base import PageRegion
 
-
-class Ftu(GaiaTestCase):
+class Ftu(Base):
 
     _activation_section_locator = (By.ID, 'activation')
     _main_title_locator = (By.ID, 'main_title')
@@ -83,7 +83,6 @@ class Ftu(GaiaTestCase):
         self.wait_for_element_displayed(*self._section_languages_locator)
 
         listed_languages = self.marionette.find_elements(*self._listed_languages_locator)
-        self.assertGreater(len(listed_languages), 0, "No languages listed on screen")
 
         # select en-US due to the condition of this test is only for en-US
         language_item = self.marionette.find_element(*self.create_language_locator("en-US"))
@@ -96,36 +95,15 @@ class Ftu(GaiaTestCase):
 
         # Tap enable data
         self.marionette.find_element(*self._enable_data_checkbox_locator).tap()
-
-        # Tap next
         self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_wifi_locator)
 
-        # Wait for some networks to be found
+        # Go pass wifi section
+        self.wait_for_element_displayed(*self._section_wifi_locator)
         self.wait_for_condition(lambda m: len(m.find_elements(*self._found_wifi_networks_locator)) > 0,
                                 message="No networks listed on screen")
-
-        wifi_network = self.marionette.find_element(By.ID, self.testvars['wifi']['ssid'])
-        wifi_network.tap()
-
-        # This is in the event we are using a Wifi Network that requires a password
-        # We cannot be sure of this thus need the logic
-        if self.testvars['wifi'].get('keyManagement'):
-            self.wait_for_element_displayed(*self._password_input_locator)
-            password = self.marionette.find_element(*self._password_input_locator)
-            password.send_keys(self.testvars['wifi'].get('psk') or self.testvars['wifi'].get('wep'))
-            self.marionette.find_element(*self._join_network_locator).tap()
-
-        self.wait_for_condition(
-            lambda m: m.find_element(
-                By.ID, self.testvars['wifi']['ssid']).find_element(*self._network_state_locator).text == "Connected"
-        )
-
-        # Tap next
         self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_date_time_locator)
 
-        # Set timezone
+        self.wait_for_element_displayed(*self._section_date_time_locator)
         continent_select = self.marionette.find_element(*self._timezone_continent_locator)
         continent_select.tap()
         self._select("Asia")
@@ -134,13 +112,9 @@ class Ftu(GaiaTestCase):
 
         city_select = self.marionette.find_element(*self._timezone_city_locator)
         city_select.tap()
-        self._select("Almaty")
+        self._select("Taipei")
 
         self.wait_for_element_displayed(*self._section_date_time_locator)
-
-        self.assertEqual(self.marionette.find_element(*self._time_zone_title_locator).text,
-                         "UTC+06:00 Asia/Almaty")
-
         self.marionette.find_element(*self._next_button_locator).tap()
 
         # Verify Geolocation section appears
