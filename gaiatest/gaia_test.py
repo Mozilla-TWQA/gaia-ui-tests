@@ -145,9 +145,8 @@ class GaiaTestCase(MarionetteTestCase):
         self.restart = kwargs.pop('restart', False)
         MarionetteTestCase.__init__(self, *args, **kwargs)
 
-    def setUp(self, appname):
+    def setUp(self, appname=""):
         MarionetteTestCase.setUp(self)
-
         self.device = GaiaDevice(self.marionette, self.testvars)
 
         # the emulator can be really slow!
@@ -157,6 +156,11 @@ class GaiaTestCase(MarionetteTestCase):
         self.apps = GaiaApps(self.marionette)
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)
+
+        # Turn on the screen and unlock
+        self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOn();")
+        self.marionette.execute_script("window.wrappedJSObject.LockScreen.unlock();")
+        self.marionette.execute_script("window.navigator.requestWakeLock('screen').unlock();")
 
         # Detect if there is ftu and do skip tour
         try:
@@ -168,14 +172,17 @@ class GaiaTestCase(MarionetteTestCase):
         except:
             pass
 
+        # make sure you go back to home screen
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+
         from gaiatest.apps.homescreen.app import Homescreen
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.marionette.find_element('css selector', 'iframe[src*="homescreen"][src*="/index.html"]'))
 
         self.homescreen = Homescreen(self.marionette)
         self.homescreen.launch()
-        self.homescreen.launch_app(appname)
-
+        if appname is not "":
+            self.homescreen.launch_app(appname)
 
     def push_resource(self, filename, count=1, destination=''):
         self.device.push_file(self.resource(filename), count, '/'.join(['sdcard', destination]))

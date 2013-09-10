@@ -11,6 +11,7 @@ class TestCamera(GaiaTestCase):
         GaiaTestCase.setUp(self, "Camera")
 
     def test_capture_a_photo(self):
+        import pdb; pdb.set_trace()
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.marionette.find_element('css selector', 'iframe[src*="camera"][src*="/index.html"]'))
 
