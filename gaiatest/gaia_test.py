@@ -157,10 +157,9 @@ class GaiaTestCase(MarionetteTestCase):
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)
 
-        # Turn on the screen and unlock
         self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOn();")
-        self.marionette.execute_script("window.wrappedJSObject.LockScreen.unlock();")
         self.marionette.execute_script("window.navigator.requestWakeLock('screen').unlock();")
+        self.marionette.execute_script("window.wrappedJSObject.LockScreen.unlock();")
 
         # Detect if there is ftu and do skip tour
         try:
@@ -169,6 +168,7 @@ class GaiaTestCase(MarionetteTestCase):
                 from gaiatest.apps.ftu.app import Ftu
                 self.ftu = Ftu(self.marionette)
                 self.ftu.skip_tour()
+                time.sleep(5)
         except:
             pass
 

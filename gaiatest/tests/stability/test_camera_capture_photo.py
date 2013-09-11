@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.camera.app import Camera
 
@@ -11,8 +13,14 @@ class TestCamera(GaiaTestCase):
         GaiaTestCase.setUp(self, "Camera")
 
     def test_capture_a_photo(self):
-        import pdb; pdb.set_trace()
         self.marionette.switch_to_frame()
+        try:
+            time.wait(5)
+            self.marionette.wait_for_element_displayed('id', 'permission-screen')
+            self.marionette.find_element('id', 'permission-yes').tap()
+        except:
+            pass
+
         self.marionette.switch_to_frame(self.marionette.find_element('css selector', 'iframe[src*="camera"][src*="/index.html"]'))
 
         self.camera = Camera(self.marionette)

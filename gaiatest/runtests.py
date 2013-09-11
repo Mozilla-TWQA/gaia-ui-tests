@@ -3,7 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import cgi
-import datetime
+from datetime import datetime
 import json
 import math
 import os
@@ -140,8 +140,41 @@ class GaiaTestRunner(MarionetteTestRunner):
     def register_handlers(self):
         self.test_handlers.extend([GaiaTestCase])
 
+    # Due to the needs of running time, we overrides this
     def run_tests(self, tests):
-        MarionetteTestRunner.run_tests(self, tests)
+        # TODO: temporarily taking testvars. making it from cmd later.
+        time = self.testvars['running_hours']
+        self.reset_test_stats()
+        starttime = datetime.utcnow()
+        # This is one of the difference
+        while (datetime.utcnow() - starttime).total_seconds() / 3600 < time:
+            for test in tests:
+                self.run_test(test)
+
+        self.logger.info('\nSUMMARY\n-------')
+        self.logger.info('passed: %d' % self.passed)
+        self.logger.info('failed: %d' % self.failed)
+        self.logger.info('todo: %d' % self.todo)
+        try:
+            self.marionette.check_for_crash()
+        except:
+            traceback.print_exc()
+
+        self.elapsedtime = datetime.utcnow() - starttime
+        if self.autolog:
+            self.post_to_autolog(self.elapsedtime)
+
+        if self.xml_output:
+            xml_dir = os.path.dirname(os.path.abspath(self.xml_output))
+            if not os.path.exists(xml_dir):
+                os.makedirs(xml_dir)
+            with open(self.xml_output, 'w') as f:
+                f.write(self.generate_xml(self.results))
+
+        if self.marionette.instance:
+            self.marionette.instance.close()
+            self.marionette.instance = None
+        del self.marionette
 
         if self.html_output:
             # change default encoding to avoid encoding problem for page source
@@ -274,7 +307,6 @@ class GaiaTestRunner(MarionetteTestRunner):
                         html.th('Links')]), id='results-table-head'),
                     html.tbody(test_logs, id='results-table-body')], id='results-table')))
         return doc.unicode(indent=2)
-
 
 def main():
     cli(runner_class=GaiaTestRunner, parser_class=GaiaTestOptions)

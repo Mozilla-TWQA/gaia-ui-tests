@@ -94,7 +94,8 @@ class Ftu(Base):
         self.wait_for_element_displayed(*self._section_cell_data_locator)
 
         # Tap enable data
-        self.marionette.find_element(*self._enable_data_checkbox_locator).tap()
+        if not self.marionette.find_element('id', 'data-connection-switch').is_selected():
+            self.marionette.find_element(*self._enable_data_checkbox_locator).tap()
         self.marionette.find_element(*self._next_button_locator).tap()
 
         # Go pass wifi section
@@ -102,17 +103,6 @@ class Ftu(Base):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._found_wifi_networks_locator)) > 0,
                                 message="No networks listed on screen")
         self.marionette.find_element(*self._next_button_locator).tap()
-
-        self.wait_for_element_displayed(*self._section_date_time_locator)
-        continent_select = self.marionette.find_element(*self._timezone_continent_locator)
-        continent_select.tap()
-        self._select("Asia")
-
-        self.wait_for_element_displayed(*self._section_date_time_locator)
-
-        city_select = self.marionette.find_element(*self._timezone_city_locator)
-        city_select.tap()
-        self._select("Taipei")
 
         self.wait_for_element_displayed(*self._section_date_time_locator)
         self.marionette.find_element(*self._next_button_locator).tap()
