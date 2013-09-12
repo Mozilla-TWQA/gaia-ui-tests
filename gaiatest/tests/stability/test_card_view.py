@@ -6,11 +6,11 @@ from gaiatest import GaiaTestCase
 from random import randrange
 
 class TestCardview(GaiaTestCase):
-    app = ['Camera', 'Gallery', 'FM Radio', "Settings", "Marketplace", "Clock", "Calendar", "Usage", "Music", "Video"]
+    app = ['Camera', 'Gallery', "Clock", "Calendar", "Usage", "Music", "Video"]
     selection = 0
 
     def setUp(self):
-        self.selection = randrange(0, len(self.app)+1)
+        self.selection = randrange(0, len(self.app))
         GaiaTestCase.setUp(self, self.app[self.selection])
 
     def test_cardview(self):

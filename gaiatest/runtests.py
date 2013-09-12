@@ -143,11 +143,11 @@ class GaiaTestRunner(MarionetteTestRunner):
     # Due to the needs of running time, we overrides this
     def run_tests(self, tests):
         # TODO: temporarily taking testvars. making it from cmd later.
-        time = self.testvars['running_hours']
+        time = self.testvars['running_mins']
         self.reset_test_stats()
         starttime = datetime.utcnow()
         # This is one of the difference
-        while (datetime.utcnow() - starttime).total_seconds() / 3600 < time:
+        while (datetime.utcnow() - starttime).total_seconds() / 60 < time:
             for test in tests:
                 self.run_test(test)
 
